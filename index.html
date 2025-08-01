@@ -8,7 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Noto Sans TC', sans-serif; touch-action: manipulation; }
-        .app-bg {background-image: url('Background.png'); background-size: cover;background-position: center;background-repeat: no-repeat; position: relative;overflow: hidden;}
+        .app-bg { background: linear-gradient(to bottom, #87CEEB 0%, #a8e0f7 70%, #98D8AA 70%, #8BC34A 100%); position: relative; overflow: hidden; }
         .main-content { z-index: 1; position: relative; }
         .progress-bar-fill { transition: width 0.5s ease-in-out; }
         .btn { transition: all 0.2s ease-in-out; }
@@ -104,7 +104,7 @@
         level: 1, xp: 0, seeds: 100,
         pet: {
             stage: 'seed', name: '小種籽',
-            visual: 'https://i.imgur.com/s79zW2c.png',
+            visual: 'Logo.png',
             evolutionPoints: { flower: 0, grass: 0, tree: 0 },
             decoration: null,
         },
@@ -125,6 +125,7 @@
     ];
     let gameState = {};
     let videoStream = null;
+    let notificationQueue = [];
 
     let navButtons, screens, petVisual, petName, levelText, xpBar, xpValue,
         seedCountText, plantInput, modal, petDecoration, 
@@ -390,11 +391,43 @@
     }
 
     async function identifyPlantAndCreateQuiz(base64ImageData, imageSrc) {
-        const prompt = `你是一位友善的植物學家。請辨識圖片中的植物，並嚴格按照以下JSON格式回傳。如果圖片不是植物，請在plantType中回傳"非植物"：
-        { "plantName": "植物的中文名稱", "plantType": "判斷植物屬於'花'、'草'、'樹木'或'非植物'", "funFact": "一段關於此植物的簡短有趣知識。", "quiz": { "question": "根據知識點設計一個單選題", "options": ["選項A", "選項B", "正確答案C"], "correctAnswerIndex": 2 } }`;
+        const prompt = `You are a friendly botanist. Identify the plant in the image. Provide its name, type ('花', '草', '樹木', or '非植物'), a fun fact, and a simple quiz question based on the fact.`;
         const API_KEY = "AIzaSyBEQ5gklJF1MQ0pfb_b9gGdxO8Ywm95BsM";
         const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${API_KEY}`;
-        const payload = { contents: [{ role: "user", parts: [ { text: prompt }, { inlineData: { mimeType: "image/png", data: base64ImageData } } ] }], generationConfig: { responseMimeType: "application/json" } };
+        const payload = {
+            contents: [{
+                role: "user",
+                parts: [
+                    { text: prompt },
+                    { inlineData: { mimeType: "image/png", data: base64ImageData } }
+                ]
+            }],
+            generationConfig: {
+                responseMimeType: "application/json",
+                responseSchema: {
+                    type: 'OBJECT',
+                    properties: {
+                        plantName: { type: 'STRING', description: "植物的中文名稱" },
+                        plantType: { type: 'STRING', description: "判斷植物屬於'花'、'草'、'樹木'或'非植物'" },
+                        funFact: { type: 'STRING', description: "一段關於此植物的簡短有趣知識" },
+                        quiz: {
+                            type: 'OBJECT',
+                            properties: {
+                                question: { type: 'STRING', description: "根據知識點設計一個單選題" },
+                                options: {
+                                    type: 'ARRAY',
+                                    items: { type: 'STRING' },
+                                    description: "三個選項，其中一個是正確答案"
+                                },
+                                correctAnswerIndex: { type: 'INTEGER', description: "正確答案在選項陣列中的索引 (0, 1, or 2)" }
+                            },
+                            required: ['question', 'options', 'correctAnswerIndex']
+                        }
+                    },
+                    required: ['plantName', 'plantType', 'funFact', 'quiz']
+                }
+            }
+        };
 
         try {
             const response = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
@@ -449,93 +482,110 @@
             optionsContainer.appendChild(button);
         });
         navigateTo('result');
-        gameState.isProcessing = false;
     }
 
     function handleQuizAnswer(selectedIndex) {
         if (gameState.isProcessing) return;
         gameState.isProcessing = true;
         
+        notificationQueue = [];
+
         const isCorrect = selectedIndex === gameState.currentQuiz.correctAnswerIndex;
         let xpReward;
-        let modalContent;
+        
+        if (isCorrect) {
+            xpReward = 5 * gameState.xpMultiplier;
+            gameState.stats.correctAnswers++;
+        } else {
+            xpReward = 2 * gameState.xpMultiplier;
+        }
+        gameState.xp += xpReward;
+        
+        const correctAnswerText = gameState.currentQuiz.options[gameState.currentQuiz.correctAnswerIndex];
+        notificationQueue.push({ type: 'xp', correct: isCorrect, reward: xpReward, correctAnswer: correctAnswerText });
 
-        const afterQuizAction = () => {
-            gameState.stats.feeds++;
-            checkAchievements('feeds', gameState.stats.feeds);
-            const dailyFeedTask = gameState.tasks.dailyFeed;
-            if (!dailyFeedTask.completedToday) {
-                dailyFeedTask.completedToday = true;
-                dailyFeedTask.lastFeedDate = getTodayString();
-                setTimeout(() => showModal(`<div class="text-6xl mb-4">🔔</div><h3 class="text-2xl font-bold mb-2">任務進度更新</h3><p class="text-gray-600 mb-6">您已完成「每日餵飼」任務，記得到任務中心領取獎勵！</p><button class="modal-close-btn btn bg-emerald-500 text-white font-bold py-2 px-6 rounded-full">繼續</button>`), 500);
+        gameState.stats.feeds++;
+        const dailyFeedTask = gameState.tasks.dailyFeed;
+        if (!dailyFeedTask.completedToday) {
+            dailyFeedTask.completedToday = true;
+            dailyFeedTask.lastFeedDate = getTodayString();
+            notificationQueue.push({ type: 'task' });
+        }
+
+        checkAchievements('correctAnswers', gameState.stats.correctAnswers);
+        checkAchievements('feeds', gameState.stats.feeds);
+        
+        let xpToNextLevel = calculateXpToNextLevel(gameState.level);
+        while (gameState.xp >= xpToNextLevel) {
+            gameState.level++;
+            gameState.xp -= xpToNextLevel;
+            notificationQueue.push({ type: 'levelUp', newLevel: gameState.level });
+            checkAchievements('level', gameState.level);
+            
+            if (gameState.level >= 3 && gameState.pet.stage === 'seed') {
+                const { flower, grass, tree } = gameState.pet.evolutionPoints;
+                let evolutionPath = 'grass';
+                if (flower > grass && flower > tree) evolutionPath = 'flower';
+                else if (tree > flower && tree > grass) evolutionPath = 'tree';
+                
+                gameState.pet.stage = evolutionPath;
+                let newName, newVisual;
+                if (evolutionPath === 'flower') { newName = '花之精靈'; newVisual = 'https://i.imgur.com/JJUd9j7.png'; } 
+                else if (evolutionPath === 'tree') { newName = '樹之守衛'; newVisual = 'https://i.imgur.com/N7aK33H.png'; }
+                else { newName = '草原夥伴'; newVisual = 'https://i.imgur.com/eN5v1s5.png'; }
+                gameState.pet.name = newName;
+                gameState.pet.visual = newVisual;
+                notificationQueue.push({ type: 'evolution', newName: newName });
             }
-            checkLevelUp();
+            xpToNextLevel = calculateXpToNextLevel(gameState.level);
+        }
+        
+        saveGameState();
+        renderAll();
+        processNotificationQueue();
+    }
+
+    function processNotificationQueue() {
+        if (notificationQueue.length === 0) {
             navigateTo('home');
             gameState.isProcessing = false;
             gameState.xpMultiplier = 1;
-        };
-
-        if (isCorrect) {
-            xpReward = 5 * gameState.xpMultiplier;
-            gameState.xp += xpReward;
-            gameState.stats.correctAnswers++;
-            checkAchievements('correctAnswers', gameState.stats.correctAnswers);
-            modalContent = `<div class="text-6xl mb-4">🎉</div><h3 class="text-2xl font-bold mb-2">答對了！</h3><p class="text-gray-600 mb-6">太棒了！獲得了 <b>${xpReward}</b> 點經驗值。</p><button class="modal-close-btn btn bg-emerald-500 text-white font-bold py-2 px-6 rounded-full">繼續</button>`;
-        } else {
-            xpReward = 2 * gameState.xpMultiplier;
-            gameState.xp += xpReward;
-            const correctAnswer = gameState.currentQuiz.options[gameState.currentQuiz.correctAnswerIndex];
-            modalContent = `<div class="text-6xl mb-4">🤔</div><h3 class="text-2xl font-bold mb-2">差一點！</h3><p class="text-gray-600 mb-6">正確答案是「${correctAnswer}」。<br>別灰心，依然獲得了 <b>${xpReward}</b> 點經驗值！</p><button class="modal-close-btn btn bg-emerald-500 text-white font-bold py-2 px-6 rounded-full">繼續</button>`;
+            renderAll();
+            return;
         }
-        
-        renderAll();
-        saveGameState();
-        showModal(modalContent, afterQuizAction);
+        const notification = notificationQueue.shift();
+        let modalContent = '';
+        switch (notification.type) {
+            case 'xp':
+                if (notification.correct) {
+                    modalContent = `<div class="text-6xl mb-4">🎉</div><h3 class="text-2xl font-bold mb-2">答對了！</h3><p class="text-gray-600 mb-6">太棒了！獲得了 <b>${notification.reward}</b> 點經驗值。</p><button class="modal-close-btn btn bg-emerald-500 text-white font-bold py-2 px-6 rounded-full">繼續</button>`;
+                } else {
+                    modalContent = `<div class="text-6xl mb-4">🤔</div><h3 class="text-2xl font-bold mb-2">差一點！</h3><p class="text-gray-600 mb-6">正確答案是「${notification.correctAnswer}」。<br>別灰心，依然獲得了 <b>${notification.reward}</b> 點經驗值！</p><button class="modal-close-btn btn bg-emerald-500 text-white font-bold py-2 px-6 rounded-full">繼續</button>`;
+                }
+                break;
+            case 'task':
+                modalContent = `<div class="text-6xl mb-4">🔔</div><h3 class="text-2xl font-bold mb-2">任務進度更新</h3><p class="text-gray-600 mb-6">您已完成「每日餵飼」任務，記得到任務中心領取獎勵！</p><button class="modal-close-btn btn bg-emerald-500 text-white font-bold py-2 px-6 rounded-full">繼續</button>`;
+                break;
+            case 'levelUp':
+                 modalContent = `<div class="text-6xl mb-4">🏆</div><h3 class="text-2xl font-bold mb-2">等級提升！</h3><p class="text-gray-600 mb-6">恭喜升到 <b>Lv.${notification.newLevel}</b>！</p><button class="modal-close-btn btn bg-emerald-500 text-white font-bold py-2 px-6 rounded-full">太棒了</button>`;
+                break;
+            case 'evolution':
+                modalContent = `<div class="text-6xl mb-4">🌟</div><h3 class="text-2xl font-bold mb-2">寵物進化了！</h3><p class="text-gray-600 mb-6">在您的照料下，寵物進化成了「${notification.newName}」！</p><button class="modal-close-btn btn bg-emerald-500 text-white font-bold py-2 px-6 rounded-full">查看</button>`;
+                break;
+            case 'achievement':
+                 modalContent = `<div class="text-6xl mb-4">🌟</div><h3 class="text-2xl font-bold mb-2">成就解鎖！</h3><p class="text-gray-600 mb-6">恭喜您達成「${ach.name}」！</p><button class="modal-close-btn btn bg-emerald-500 text-white font-bold py-2 px-6 rounded-full">太好了</button>`;
+                break;
+        }
+        showModal(modalContent, processNotificationQueue);
     }
-
-    function checkLevelUp() {
-        let leveledUp = false;
-        let xpToNextLevel = calculateXpToNextLevel(gameState.level);
-        while (gameState.xp >= xpToNextLevel) {
-            leveledUp = true;
-            gameState.level++;
-            gameState.xp -= xpToNextLevel;
-            checkAchievements('level', gameState.level);
-            xpToNextLevel = calculateXpToNextLevel(gameState.level);
-        }
-        if (leveledUp) {
-            showModal(`<div class="text-6xl mb-4">🏆</div><h3 class="text-2xl font-bold mb-2">等級提升！</h3><p class="text-gray-600 mb-6">恭喜升到 <b>Lv.${gameState.level}</b>！</p><button class="modal-close-btn btn bg-emerald-500 text-white font-bold py-2 px-6 rounded-full">太棒了</button>`);
-            checkEvolution();
-        }
-    }
-    function checkEvolution() {
-        if (gameState.level >= 3 && gameState.pet.stage === 'seed') {
-            const { flower, grass, tree } = gameState.pet.evolutionPoints;
-            let evolutionPath = 'grass';
-            if (flower > grass && flower > tree) evolutionPath = 'flower';
-            else if (tree > flower && tree > grass) evolutionPath = 'tree';
-
-            gameState.pet.stage = evolutionPath;
-            if (evolutionPath === 'flower') {
-                gameState.pet.name = '花之精靈';
-                gameState.pet.visual = 'https://i.imgur.com/JJUd9j7.png';
-            } else if (evolutionPath === 'tree') {
-                gameState.pet.name = '樹之守衛';
-                gameState.pet.visual = 'https://i.imgur.com/N7aK33H.png';
-            } else {
-                gameState.pet.name = '草原夥伴';
-                gameState.pet.visual = 'https://i.imgur.com/eN5v1s5.png';
-            }
-            setTimeout(() => showModal(`<div class="text-6xl mb-4">🌟</div><h3 class="text-2xl font-bold mb-2">寵物進化了！</h3><p class="text-gray-600 mb-6">在您的照料下，寵物進化成了「${gameState.pet.name}」！</p><button class="modal-close-btn btn bg-emerald-500 text-white font-bold py-2 px-6 rounded-full">查看</button>`), 1000);
-        }
-    }
+    
     function checkAchievements(metric, value) {
         Object.values(gameState.achievements).forEach(ach => {
             if (!ach.unlocked && ach.metric === metric && ach.progress < ach.target) {
                 ach.progress = value;
                 if (ach.progress >= ach.target) {
                     ach.unlocked = true;
-                    setTimeout(() => showModal(`<div class="text-6xl mb-4">🌟</div><h3 class="text-2xl font-bold mb-2">成就解鎖！</h3><p class="text-gray-600 mb-6">恭喜您達成「${ach.name}」！</p><button class="modal-close-btn btn bg-emerald-500 text-white font-bold py-2 px-6 rounded-full">太好了</button>`), 500);
+                    notificationQueue.push({ type: 'achievement', name: ach.name });
                 }
             }
         });
