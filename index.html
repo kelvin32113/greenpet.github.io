@@ -392,7 +392,7 @@
     async function identifyPlantAndCreateQuiz(base64ImageData, imageSrc) {
         const prompt = `你是一位友善的植物學家。請辨識圖片中的植物，並嚴格按照以下JSON格式回傳。如果圖片不是植物，請在plantType中回傳"非植物"：
         { "plantName": "植物的中文名稱", "plantType": "判斷植物屬於'花'、'草'、'樹木'或'非植物'", "funFact": "一段關於此植物的簡短有趣知識。", "quiz": { "question": "根據知識點設計一個單選題", "options": ["選項A", "選項B", "正確答案C"], "correctAnswerIndex": 2 } }`;
-        const API_KEY = "";
+        const API_KEY = "AIzaSyBEQ5gklJF1MQ0pfb_b9gGdxO8Ywm95BsM";
         const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${API_KEY}`;
         const payload = { contents: [{ role: "user", parts: [ { text: prompt }, { inlineData: { mimeType: "image/png", data: base64ImageData } } ] }], generationConfig: { responseMimeType: "application/json" } };
 
