@@ -69,7 +69,6 @@
             <div id="loading-screen" class="hidden absolute inset-0 bg-white/80 backdrop-blur-sm flex flex-col justify-center items-center z-30"><div class="animate-spin rounded-full h-16 w-16 border-b-4 border-emerald-500"></div><p class="mt-4 text-lg text-gray-600 font-semibold">AI 正在努力辨識中...</p></div>
             <div id="result-screen" class="hidden absolute inset-0 bg-gray-50 flex flex-col p-4 sm:p-6 z-20 overflow-y-auto"></div>
             <div id="tasks-screen" class="hidden absolute inset-0 bg-gray-50 p-4 sm:p-6 z-20 overflow-y-auto"></div>
-            <div id="achievements-screen" class="hidden absolute inset-0 bg-gray-50 p-4 sm:p-6 z-20 overflow-y-auto"></div>
             <div id="pokedex-screen" class="hidden absolute inset-0 bg-gray-50 p-4 sm:p-6 z-20 overflow-y-auto"></div>
             <div id="shop-screen" class="hidden absolute inset-0 bg-gray-50 p-4 sm:p-6 z-20 overflow-y-auto"></div>
             
@@ -82,11 +81,10 @@
             </div>
         </div>
 
-        <nav id="main-nav" class="hidden w-full bg-gray-100/90 backdrop-blur-sm grid grid-cols-6 gap-1 p-2 border-t border-gray-200 z-10">
+        <nav id="main-nav" class="hidden w-full bg-gray-100/90 backdrop-blur-sm grid grid-cols-5 gap-1 p-2 border-t border-gray-200 z-10">
             <button id="nav-home" class="nav-item flex flex-col items-center text-gray-600 p-1 rounded-lg active"><svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg><span class="text-xs font-medium">主頁</span></button>
             <button id="feed-btn-trigger" class="nav-item btn flex flex-col items-center text-gray-600 p-1 rounded-lg cursor-pointer"><svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg><span class="text-xs font-medium">餵飼</span></button>
             <input type="file" id="plant-input" accept="image/*">
-            <button id="nav-achievements" class="nav-item flex flex-col items-center text-gray-600 p-1 rounded-lg"><svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg><span class="text-xs font-medium">成就</span></button>
             <button id="nav-pokedex" class="nav-item flex flex-col items-center text-gray-600 p-1 rounded-lg"><svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg><span class="text-xs font-medium">圖鑑</span></button>
             <button id="nav-shop" class="nav-item flex flex-col items-center text-gray-600 p-1 rounded-lg"><svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg><span class="text-xs font-medium">商店</span></button>
             <button id="nav-tasks" class="nav-item flex flex-col items-center text-gray-600 p-1 rounded-lg"><svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg><span class="text-xs font-medium">任務</span></button>
@@ -148,8 +146,6 @@
     ];
     let gameState = {};
     let videoStream = null;
-    let modalQueue = [];
-    let isShowingModal = false;
 
     let navButtons, screens, petVisual, petName, levelText, xpBar, xpValue,
         seedCountText, plantInput, modal, petDecoration, 
@@ -178,7 +174,7 @@
                         gameState.pet.stage = 1;
                     }
                     
-                    checkEvolutionSilent();
+                    checkEvolution();
                     
                     return true;
                 }
@@ -192,22 +188,7 @@
         }
     }
     
-    function queueModal(contentHtml, onClose = () => {}) {
-        modalQueue.push({ contentHtml, onClose });
-        if (!isShowingModal) {
-            showNextModal();
-        }
-    }
-    
-    function showNextModal() {
-        if (modalQueue.length === 0) {
-            isShowingModal = false;
-            return;
-        }
-        
-        isShowingModal = true;
-        const { contentHtml, onClose } = modalQueue.shift();
-        
+    function showModal(contentHtml, onClose = () => {}) {
         const modalContent = modal.querySelector('.modal-content');
         modalContent.innerHTML = contentHtml;
         modal.classList.remove('hidden');
@@ -223,14 +204,9 @@
                 hideModal();
                 onClose();
                 closeBtn.removeEventListener('click', closeHandler);
-                setTimeout(showNextModal, 300);
             };
             closeBtn.addEventListener('click', closeHandler);
         }
-    }
-    
-    function showModal(contentHtml, onClose = () => {}) {
-        queueModal(contentHtml, onClose);
     }
     
     function hideModal() {
@@ -519,7 +495,7 @@
             if (!dailyFeedTask.completedToday) {
                 dailyFeedTask.completedToday = true;
                 dailyFeedTask.lastFeedDate = getTodayString();
-                queueModal(`<div class="text-6xl mb-4">🔔</div><h3 class="text-2xl font-bold mb-2">任務進度更新</h3><p class="text-gray-600 mb-6">您已完成「每日餵飼」任務，記得到任務中心領取獎勵！</p><button class="modal-close-btn btn bg-emerald-500 text-white font-bold py-2 px-6 rounded-full">繼續</button>`);
+                setTimeout(() => showModal(`<div class="text-6xl mb-4">🔔</div><h3 class="text-2xl font-bold mb-2">任務進度更新</h3><p class="text-gray-600 mb-6">您已完成「每日餵飼」任務，記得到任務中心領取獎勵！</p><button class="modal-close-btn btn bg-emerald-500 text-white font-bold py-2 px-6 rounded-full">繼續</button>`), 500);
             }
             checkLevelUp();
             navigateTo('home');
@@ -547,8 +523,6 @@
 
     function checkLevelUp() {
         let levelsGained = 0;
-        let achievementsUnlocked = [];
-        let didEvolve = false;
         
         while (true) {
             const xpNeeded = calculateXpToNextLevel(gameState.level);
@@ -557,41 +531,20 @@
             gameState.xp -= xpNeeded;
             gameState.level++;
             levelsGained++;
-            
-            Object.keys(gameState.achievements).forEach(key => {
-                const ach = gameState.achievements[key];
-                if (ach.metric === 'level' && !ach.unlocked) {
-                    ach.progress = gameState.level;
-                    if (ach.progress >= ach.target) {
-                        ach.unlocked = true;
-                        gameState.seeds += 50;
-                        achievementsUnlocked.push(ach);
-                    }
-                }
-            });
+            checkAchievements('level', gameState.level);
         }
         
         if (levelsGained > 0) {
-            const oldStage = gameState.pet.stage;
-            didEvolve = checkEvolutionSilent();
-            
+            checkEvolution();
             renderAll();
             saveGameState();
             
-            achievementsUnlocked.forEach(ach => {
-                queueModal(`<div class="text-6xl mb-4">🏆</div><h3 class="text-2xl font-bold mb-2">成就解鎖！</h3><p class="text-gray-600 mb-4"><b>${ach.name}</b></p><p class="text-sm text-gray-500 mb-6">${ach.description}</p><p class="text-emerald-600 font-bold">獲得獎勵：50 🌿</p><button class="modal-close-btn btn bg-emerald-500 text-white font-bold py-2 px-6 rounded-full">太好了！</button>`);
-            });
-            
             const levelText = levelsGained > 1 ? `升級了 ${levelsGained} 級` : '升級了';
-            queueModal(`<div class="text-6xl mb-4">🎊</div><h3 class="text-2xl font-bold mb-2">${levelText}！</h3><p class="text-gray-600 mb-6">恭喜！您的寵物升級到 <b>Lv.${gameState.level}</b>！</p><button class="modal-close-btn btn bg-emerald-500 text-white font-bold py-2 px-6 rounded-full">太棒了！</button>`);
-            
-            if (didEvolve) {
-                queueModal(`<div class="text-6xl mb-4">✨</div><h3 class="text-2xl font-bold mb-2">進化了！</h3><p class="text-gray-600 mb-6"><b>${gameState.pet.name}</b> 進化了！</p><button class="modal-close-btn btn bg-emerald-500 text-white font-bold py-2 px-6 rounded-full">太酷了！</button>`);
-            }
+            showModal(`<div class="text-6xl mb-4">🎊</div><h3 class="text-2xl font-bold mb-2">${levelText}！</h3><p class="text-gray-600 mb-6">恭喜！您的寵物升級到 <b>Lv.${gameState.level}</b>！</p><button class="modal-close-btn btn bg-emerald-500 text-white font-bold py-2 px-6 rounded-full">太棒了！</button>`);
         }
     }
     
-    function checkEvolutionSilent() {
+    function checkEvolution() {
         const petType = gameState.pet.type;
         const currentLevel = gameState.level;
         let newStage = 1;
@@ -611,14 +564,14 @@
                 gameState.pet.visual = evolutionInfo.visual;
                 renderPet();
                 saveGameState();
-                return oldStage < newStage;
+                
+                if (oldStage < newStage) {
+                    setTimeout(() => {
+                        showModal(`<div class="text-6xl mb-4">✨</div><h3 class="text-2xl font-bold mb-2">進化了！</h3><p class="text-gray-600 mb-6"><b>${gameState.pet.name}</b> 進化了！</p><button class="modal-close-btn btn bg-emerald-500 text-white font-bold py-2 px-6 rounded-full">太酷了！</button>`);
+                    }, 800);
+                }
             }
         }
-        return false;
-    }
-    
-    function checkEvolution() {
-        return checkEvolutionSilent();
     }
     
     function checkAchievements(metric, value) {
@@ -629,7 +582,9 @@
                 if (ach.progress >= ach.target) {
                     ach.unlocked = true;
                     gameState.seeds += 50;
-                    queueModal(`<div class="text-6xl mb-4">🏆</div><h3 class="text-2xl font-bold mb-2">成就解鎖！</h3><p class="text-gray-600 mb-4"><b>${ach.name}</b></p><p class="text-sm text-gray-500 mb-6">${ach.description}</p><p class="text-emerald-600 font-bold">獲得獎勵：50 🌿</p><button class="modal-close-btn btn bg-emerald-500 text-white font-bold py-2 px-6 rounded-full">太好了！</button>`);
+                    setTimeout(() => {
+                        showModal(`<div class="text-6xl mb-4">🏆</div><h3 class="text-2xl font-bold mb-2">成就解鎖！</h3><p class="text-gray-600 mb-4"><b>${ach.name}</b></p><p class="text-sm text-gray-500 mb-6">${ach.description}</p><p class="text-emerald-600 font-bold">獲得獎勵：50 🌿</p><button class="modal-close-btn btn bg-emerald-500 text-white font-bold py-2 px-6 rounded-full">太好了！</button>`);
+                    }, 1200);
                 }
             }
         });
@@ -670,7 +625,7 @@
     // --- Initial Load ---
     document.addEventListener('DOMContentLoaded', () => {
         // Assign DOM elements
-        navButtons = { home: document.getElementById('nav-home'), tasks: document.getElementById('nav-tasks'), achievements: document.getElementById('nav-achievements'), pokedex: document.getElementById('nav-pokedex'), shop: document.getElementById('nav-shop') };
+        navButtons = { home: document.getElementById('nav-home'), tasks: document.getElementById('nav-tasks'), pokedex: document.getElementById('nav-pokedex'), shop: document.getElementById('nav-shop') };
         screens = { start: document.getElementById('start-screen'), home: document.getElementById('home-screen'), loading: document.getElementById('loading-screen'), result: document.getElementById('result-screen'), tasks: document.getElementById('tasks-screen'), achievements: document.getElementById('achievements-screen'), pokedex: document.getElementById('pokedex-screen'), shop: document.getElementById('shop-screen'), camera: document.getElementById('camera-screen') };
         petVisual = document.getElementById('pet-visual'); petName = document.getElementById('pet-name'); levelText = document.getElementById('level-text'); xpBar = document.getElementById('xp-bar'); xpValue = document.getElementById('xp-value'); seedCountText = document.getElementById('seed-count'); plantInput = document.getElementById('plant-input'); modal = document.getElementById('modal'); petDecoration = document.getElementById('pet-decoration');
         mainNav = document.getElementById('main-nav'); cameraFeed = document.getElementById('camera-feed'); captureBtn = document.getElementById('capture-btn'); cancelCameraBtn = document.getElementById('cancel-camera-btn'); canvas = document.getElementById('canvas');
