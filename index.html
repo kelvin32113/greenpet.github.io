@@ -8,7 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Noto Sans TC', sans-serif; touch-action: manipulation; }
-        .app-bg {background-image: url('Background.png'); background-size: cover;background-position: center;background-repeat: no-repeat; position: relative;overflow: hidden;}
+        .app-bg {background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 50%, #6ee7b7 100%); position: relative;overflow: hidden;}
         .main-content { z-index: 1; position: relative; }
         .progress-bar-fill { transition: width 0.5s ease-in-out; }
         .btn { transition: all 0.2s ease-in-out; }
@@ -38,12 +38,12 @@
                 <p class="text-gray-600 mb-6 text-center">點擊選擇一個夥伴，並為牠取個名字吧！</p>
                 
                 <div class="flex gap-4 mb-6">
-                    <div id="pet-choice-1" class="pet-choice-card rounded-2xl p-2 cursor-pointer bg-white shadow-md" data-visual="Logo.png" data-name="種籽" data-type="seed1">
-                        <img src="Logo.png" class="w-24 h-24 object-cover rounded-xl">
+                    <div id="pet-choice-1" class="pet-choice-card rounded-2xl p-2 cursor-pointer bg-white shadow-md" data-visual="Pet1_1.png" data-name="種籽" data-type="seed1">
+                        <img src="Pet1_1.png" class="w-24 h-24 object-contain rounded-xl">
                         <p class="text-center text-sm mt-1 font-semibold">種籽</p>
                     </div>
-                    <div id="pet-choice-2" class="pet-choice-card rounded-2xl p-2 cursor-pointer bg-white shadow-md" data-visual="Logo2.png" data-name="豆芽" data-type="seed2">
-                        <img src="Logo2.png" class="w-24 h-24 object-cover rounded-xl">
+                    <div id="pet-choice-2" class="pet-choice-card rounded-2xl p-2 cursor-pointer bg-white shadow-md" data-visual="Pet2_1.png" data-name="豆芽" data-type="seed2">
+                        <img src="Pet2_1.png" class="w-24 h-24 object-contain rounded-xl">
                          <p class="text-center text-sm mt-1 font-semibold">豆芽</p>
                     </div>
                 </div>
@@ -126,17 +126,17 @@
         seed1: {
             name: '種籽',
             stages: {
-                1: { name: '小種籽', visual: 'Logo.png' },
-                2: { name: '成長種籽', visual: 'Logo.png' },
-                3: { name: '進化種籽', visual: 'Logo.png' }
+                1: { visual: 'Pet1_1.png' },
+                2: { visual: 'Pet1_2.png' },
+                3: { visual: 'Pet1_3.png' }
             }
         },
         seed2: {
             name: '豆芽',
             stages: {
-                1: { name: '小豆芽', visual: 'Logo2.png' },
-                2: { name: '成長豆芽', visual: 'Logo2.png' },
-                3: { name: '進化豆芽', visual: 'Logo2.png' }
+                1: { visual: 'Pet2_1.png' },
+                2: { visual: 'Pet2_2.png' },
+                3: { visual: 'Pet2_3.png' }
             }
         }
     };
@@ -561,14 +561,13 @@
             
             if (petEvolutionData[petType] && petEvolutionData[petType].stages[newStage]) {
                 const evolutionInfo = petEvolutionData[petType].stages[newStage];
-                gameState.pet.name = evolutionInfo.name;
                 gameState.pet.visual = evolutionInfo.visual;
                 renderPet();
                 saveGameState();
                 
                 if (oldStage < newStage) {
                     setTimeout(() => {
-                        showModal(`<div class="text-6xl mb-4">✨</div><h3 class="text-2xl font-bold mb-2">進化了！</h3><p class="text-gray-600 mb-6">您的寵物進化成 <b>${evolutionInfo.name}</b> 了！</p><button class="modal-close-btn btn bg-emerald-500 text-white font-bold py-2 px-6 rounded-full">太酷了！</button>`);
+                        showModal(`<div class="text-6xl mb-4">✨</div><h3 class="text-2xl font-bold mb-2">進化了！</h3><p class="text-gray-600 mb-6"><b>${gameState.pet.name}</b> 進化了！</p><button class="modal-close-btn btn bg-emerald-500 text-white font-bold py-2 px-6 rounded-full">太酷了！</button>`);
                     }, 800);
                 }
             }
