@@ -23,7 +23,7 @@
         .task-completed { text-decoration: line-through; color: #6b7280; }
         .pet-decoration { position: absolute; top: -20px; left: 50%; transform: translateX(-50%); width: 100px; height: auto; pointer-events: none; z-index: 10; }
         .pokedex-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 1rem; }
-        .camera-view { object-fit: cover; width: 100%; height: 100%; transform: scaleX(-1); }
+        .camera-view { object-fit: cover; width: 100%; height: 100%; }
         .pet-choice-card { border: 4px solid transparent; transition: border-color 0.2s ease-in-out; }
         .pet-choice-card.selected { border-color: #10b981; /* emerald-600 */ }
     </style>
@@ -38,11 +38,11 @@
                 <p class="text-gray-600 mb-6 text-center">點擊選擇一個夥伴，並為牠取個名字吧！</p>
                 
                 <div class="flex gap-4 mb-6">
-                    <div id="pet-choice-1" class="pet-choice-card rounded-2xl p-2 cursor-pointer bg-white shadow-md" data-visual="Logo.png" data-name="種籽">
+                    <div id="pet-choice-1" class="pet-choice-card rounded-2xl p-2 cursor-pointer bg-white shadow-md" data-visual="Logo.png" data-name="種籽" data-type="seed1">
                         <img src="Logo.png" class="w-24 h-24 object-cover rounded-xl">
                         <p class="text-center text-sm mt-1 font-semibold">種籽</p>
                     </div>
-                    <div id="pet-choice-2" class="pet-choice-card rounded-2xl p-2 cursor-pointer bg-white shadow-md" data-visual="Logo2.png" data-name="豆芽">
+                    <div id="pet-choice-2" class="pet-choice-card rounded-2xl p-2 cursor-pointer bg-white shadow-md" data-visual="Logo2.png" data-name="豆芽" data-type="seed2">
                         <img src="Logo2.png" class="w-24 h-24 object-cover rounded-xl">
                          <p class="text-center text-sm mt-1 font-semibold">豆芽</p>
                     </div>
@@ -103,7 +103,9 @@
         gameStarted: false,
         level: 1, xp: 0, seeds: 100,
         pet: {
-            stage: 'seed', name: '小種籽',
+            type: 'seed1',
+            stage: 1,
+            name: '小種籽',
             visual: 'https://i.imgur.com/s79zW2c.png',
             evolutionPoints: { flower: 0, grass: 0, tree: 0 },
             decoration: null,
@@ -118,6 +120,25 @@
             reachLevelTwo: { name: "初窺門徑", description: "寵物達到 2 級", target: 2, progress: 1, unlocked: false, metric: 'level' },
         },
         currentQuiz: null, isProcessing: false, xpMultiplier: 1,
+    };
+    
+    const petEvolutionData = {
+        seed1: {
+            name: '種籽',
+            stages: {
+                1: { name: '小種籽', visual: 'Logo.png' },
+                2: { name: '成長種籽', visual: 'Logo.png' },
+                3: { name: '進化種籽', visual: 'Logo.png' }
+            }
+        },
+        seed2: {
+            name: '豆芽',
+            stages: {
+                1: { name: '小豆芽', visual: 'Logo2.png' },
+                2: { name: '成長豆芽', visual: 'Logo2.png' },
+                3: { name: '進化豆芽', visual: 'Logo2.png' }
+            }
+        }
     };
     const shopItems = [
         { id: 'special_feed', name: '神奇營養液', description: '下次餵飼經驗值加倍！', price: 50, icon: '🧪' },
@@ -145,6 +166,16 @@
                 const parsedData = JSON.parse(savedData);
                 if (parsedData.gameStarted) {
                     gameState = parsedData;
+                    
+                    if (!gameState.pet.type) {
+                        gameState.pet.type = 'seed1';
+                    }
+                    if (!gameState.pet.stage) {
+                        gameState.pet.stage = 1;
+                    }
+                    
+                    checkEvolution();
+                    
                     return true;
                 }
             }
@@ -360,8 +391,6 @@
         canvas.width = cameraFeed.videoWidth;
         canvas.height = cameraFeed.videoHeight;
         const context = canvas.getContext('2d');
-        context.translate(canvas.width, 0);
-        context.scale(-1, 1);
         context.drawImage(cameraFeed, 0, 0, canvas.width, canvas.height);
         
         const dataUri = canvas.toDataURL('image/png');
@@ -492,14 +521,100 @@
         }
     }
 
-    function checkLevelUp() { /* ... */ }
-    function checkEvolution() { /* ... */ }
-    function checkAchievements(metric, value) { /* ... */ }
-    function checkDailyTasks() { /* ... */ }
+    function checkLevelUp() {
+        let levelsGained = 0;
+        
+        while (true) {
+            const xpNeeded = calculateXpToNextLevel(gameState.level);
+            if (gameState.xp < xpNeeded) break;
+            
+            gameState.xp -= xpNeeded;
+            gameState.level++;
+            levelsGained++;
+            checkAchievements('level', gameState.level);
+        }
+        
+        if (levelsGained > 0) {
+            checkEvolution();
+            renderAll();
+            saveGameState();
+            
+            const levelText = levelsGained > 1 ? `升級了 ${levelsGained} 級` : '升級了';
+            showModal(`<div class="text-6xl mb-4">🎊</div><h3 class="text-2xl font-bold mb-2">${levelText}！</h3><p class="text-gray-600 mb-6">恭喜！您的寵物升級到 <b>Lv.${gameState.level}</b>！</p><button class="modal-close-btn btn bg-emerald-500 text-white font-bold py-2 px-6 rounded-full">太棒了！</button>`);
+        }
+    }
     
-    function initializeGame(petName, petImageURL) {
+    function checkEvolution() {
+        const petType = gameState.pet.type;
+        const currentLevel = gameState.level;
+        let newStage = 1;
+        
+        if (currentLevel >= 3) {
+            newStage = 3;
+        } else if (currentLevel >= 2) {
+            newStage = 2;
+        }
+        
+        if (newStage !== gameState.pet.stage) {
+            const oldStage = gameState.pet.stage;
+            gameState.pet.stage = newStage;
+            
+            if (petEvolutionData[petType] && petEvolutionData[petType].stages[newStage]) {
+                const evolutionInfo = petEvolutionData[petType].stages[newStage];
+                gameState.pet.name = evolutionInfo.name;
+                gameState.pet.visual = evolutionInfo.visual;
+                renderPet();
+                saveGameState();
+                
+                if (oldStage < newStage) {
+                    setTimeout(() => {
+                        showModal(`<div class="text-6xl mb-4">✨</div><h3 class="text-2xl font-bold mb-2">進化了！</h3><p class="text-gray-600 mb-6">您的寵物進化成 <b>${evolutionInfo.name}</b> 了！</p><button class="modal-close-btn btn bg-emerald-500 text-white font-bold py-2 px-6 rounded-full">太酷了！</button>`);
+                    }, 800);
+                }
+            }
+        }
+    }
+    
+    function checkAchievements(metric, value) {
+        Object.keys(gameState.achievements).forEach(key => {
+            const ach = gameState.achievements[key];
+            if (ach.metric === metric && !ach.unlocked) {
+                ach.progress = value;
+                if (ach.progress >= ach.target) {
+                    ach.unlocked = true;
+                    gameState.seeds += 50;
+                    setTimeout(() => {
+                        showModal(`<div class="text-6xl mb-4">🏆</div><h3 class="text-2xl font-bold mb-2">成就解鎖！</h3><p class="text-gray-600 mb-4"><b>${ach.name}</b></p><p class="text-sm text-gray-500 mb-6">${ach.description}</p><p class="text-emerald-600 font-bold">獲得獎勵：50 🌿</p><button class="modal-close-btn btn bg-emerald-500 text-white font-bold py-2 px-6 rounded-full">太好了！</button>`);
+                    }, 1200);
+                }
+            }
+        });
+        saveGameState();
+    }
+    
+    function checkDailyTasks() {
+        const today = getTodayString();
+        const dailyFeedTask = gameState.tasks.dailyFeed;
+        
+        if (dailyFeedTask.lastFeedDate && dailyFeedTask.lastFeedDate !== today) {
+            dailyFeedTask.completedToday = false;
+            dailyFeedTask.claimedToday = false;
+        }
+        saveGameState();
+    }
+    
+    function initializeGame(petName, petImageURL, petType) {
+        gameState.pet.type = petType;
+        gameState.pet.stage = 1;
         gameState.pet.name = petName;
-        gameState.pet.visual = petImageURL;
+        
+        if (petEvolutionData[petType] && petEvolutionData[petType].stages[1]) {
+            const stageData = petEvolutionData[petType].stages[1];
+            gameState.pet.visual = stageData.visual;
+        } else {
+            gameState.pet.visual = petImageURL;
+        }
+        
         gameState.gameStarted = true;
         saveGameState();
         screens.start.classList.add('hidden');
@@ -546,12 +661,14 @@
             
             let selectedPetURL = petChoice1.dataset.visual;
             let selectedPetName = petChoice1.dataset.name;
+            let selectedPetType = petChoice1.dataset.type;
             petChoice1.classList.add('selected');
             startPetName.value = selectedPetName;
 
             petChoice1.addEventListener('click', () => {
                 selectedPetURL = petChoice1.dataset.visual;
                 selectedPetName = petChoice1.dataset.name;
+                selectedPetType = petChoice1.dataset.type;
                 petChoice1.classList.add('selected');
                 petChoice2.classList.remove('selected');
                 startPetName.value = selectedPetName;
@@ -559,6 +676,7 @@
             petChoice2.addEventListener('click', () => {
                 selectedPetURL = petChoice2.dataset.visual;
                 selectedPetName = petChoice2.dataset.name;
+                selectedPetType = petChoice2.dataset.type;
                 petChoice2.classList.add('selected');
                 petChoice1.classList.remove('selected');
                 startPetName.value = selectedPetName;
@@ -570,7 +688,7 @@
                     showModal(`<div class="text-6xl mb-4">⚠️</div><h3 class="text-2xl font-bold mb-2">提示</h3><p class="text-gray-600 mb-6">請為您的寵物取一個名字！</p><button class="modal-close-btn btn bg-emerald-500 text-white font-bold py-2 px-6 rounded-full">好的</button>`);
                     return;
                 }
-                initializeGame(petNameValue, selectedPetURL);
+                initializeGame(petNameValue, selectedPetURL, selectedPetType);
             });
         }
     });
