@@ -152,7 +152,7 @@
     };
     const shopItems = [
         { id: 'special_feed', name: '神奇營養液', description: '下次餵飼經驗值加倍！', price: 50, icon: '🧪' },
-        { id: 'hat_1', name: '時尚草帽', description: '為你的寵物添購一頂可愛的草帽。', price: 150, icon: '👒', visual: 'https://i.imgur.com/9E6aN5B.png' },
+        { id: 'hat_1', name: '時尚草帽', description: '為你的寵物添購一頂可愛的草帽。', price: 150, icon: '👒', visual: 'Hat.png' },
     ];
     let gameState = {};
     let videoStream = null;
@@ -184,6 +184,19 @@
                     }
                     if (!gameState.pet.stage) {
                         gameState.pet.stage = 1;
+                    }
+                    
+                    if (!gameState.tasks.feedShrub) {
+                        gameState.tasks.feedShrub = { description: "餵飼灌木類植物", reward: 15, requiredType: "灌木", completedToday: false, claimedToday: false, lastFeedDate: null };
+                    }
+                    if (!gameState.tasks.feedTree) {
+                        gameState.tasks.feedTree = { description: "餵飼喬木類植物", reward: 15, requiredType: "喬木", completedToday: false, claimedToday: false, lastFeedDate: null };
+                    }
+                    if (!gameState.tasks.feedHerbaceous) {
+                        gameState.tasks.feedHerbaceous = { description: "餵飼草本植物", reward: 15, requiredType: "草本", completedToday: false, claimedToday: false, lastFeedDate: null };
+                    }
+                    if (!gameState.tasks.feedVine) {
+                        gameState.tasks.feedVine = { description: "餵飼蔓性植物", reward: 15, requiredType: "蔓性", completedToday: false, claimedToday: false, lastFeedDate: null };
                     }
                     
                     checkEvolution();
@@ -468,9 +481,21 @@
 
         try {
             const response = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-            if (!response.ok) throw new Error(`API 請求失敗: ${response.status}`);
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error(`API 請求失敗: ${response.status}`, errorText);
+                throw new Error(`API 請求失敗: ${response.status}`);
+            }
             const result = await response.json();
+            console.log('API Response:', result);
+            
+            if (!result.candidates || !result.candidates[0] || !result.candidates[0].content || !result.candidates[0].content.parts || !result.candidates[0].content.parts[0]) {
+                console.error('API 回應格式錯誤:', result);
+                throw new Error('API 回應格式不正確');
+            }
+            
             const data = JSON.parse(result.candidates[0].content.parts[0].text);
+            console.log('Parsed plant data:', data);
             
             const validTypes = ['灌木', '喬木', '草本', '蔓性'];
             if (!validTypes.includes(data.plantType)) {
