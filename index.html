@@ -119,10 +119,11 @@
         stats: { feeds: 0, correctAnswers: 0 },
         tasks: { 
             dailyFeed: { description: "每日餵飼寵物一次", reward: 20, completedToday: false, claimedToday: false, lastFeedDate: null },
-            feedShrub: { description: "餵飼灌木類植物", reward: 15, requiredType: "灌木", completedToday: false, claimedToday: false, lastFeedDate: null },
-            feedTree: { description: "餵飼喬木類植物", reward: 15, requiredType: "喬木", completedToday: false, claimedToday: false, lastFeedDate: null },
-            feedHerbaceous: { description: "餵飼草本植物", reward: 15, requiredType: "草本", completedToday: false, claimedToday: false, lastFeedDate: null },
-            feedVine: { description: "餵飼蔓性植物", reward: 15, requiredType: "蔓性", completedToday: false, claimedToday: false, lastFeedDate: null }
+            feedNonVascular: { description: "餵飼非維管植物", reward: 15, requiredType: "非維管植物", completedToday: false, claimedToday: false, lastFeedDate: null },
+            feedFern: { description: "餵飼蕨類植物", reward: 15, requiredType: "蕨類植物", completedToday: false, claimedToday: false, lastFeedDate: null },
+            feedDicot: { description: "餵飼雙子葉植物", reward: 15, requiredType: "雙子葉植物", completedToday: false, claimedToday: false, lastFeedDate: null },
+            feedMonocot: { description: "餵飼單子葉植物", reward: 15, requiredType: "單子葉植物", completedToday: false, claimedToday: false, lastFeedDate: null },
+            feedGymnosperm: { description: "餵飼裸子植物", reward: 15, requiredType: "裸子植物", completedToday: false, claimedToday: false, lastFeedDate: null }
         },
         achievements: {
             firstAnswer: { name: "初為人師", description: "第一次成功回答問題", target: 1, progress: 0, unlocked: false, metric: 'correctAnswers' },
@@ -152,7 +153,7 @@
     };
     const shopItems = [
         { id: 'special_feed', name: '神奇營養液', description: '下次餵飼經驗值加倍！', price: 50, icon: '🧪' },
-        { id: 'hat_1', name: '時尚草帽', description: '為你的寵物添購一頂可愛的草帽。', price: 150, icon: '👒', visual: 'Hat.png' },
+        { id: 'hat_1', name: '時尚草帽', description: '為你的寵物添購一頂可愛的草帽。', price: 150, icon: '👒', visual: 'https://i.imgur.com/9E6aN5B.png' },
     ];
     let gameState = {};
     let videoStream = null;
@@ -186,17 +187,25 @@
                         gameState.pet.stage = 1;
                     }
                     
-                    if (!gameState.tasks.feedShrub) {
-                        gameState.tasks.feedShrub = { description: "餵飼灌木類植物", reward: 15, requiredType: "灌木", completedToday: false, claimedToday: false, lastFeedDate: null };
+                    delete gameState.tasks.feedShrub;
+                    delete gameState.tasks.feedTree;
+                    delete gameState.tasks.feedHerbaceous;
+                    delete gameState.tasks.feedVine;
+                    
+                    if (!gameState.tasks.feedNonVascular) {
+                        gameState.tasks.feedNonVascular = { description: "餵飼非維管植物", reward: 15, requiredType: "非維管植物", completedToday: false, claimedToday: false, lastFeedDate: null };
                     }
-                    if (!gameState.tasks.feedTree) {
-                        gameState.tasks.feedTree = { description: "餵飼喬木類植物", reward: 15, requiredType: "喬木", completedToday: false, claimedToday: false, lastFeedDate: null };
+                    if (!gameState.tasks.feedFern) {
+                        gameState.tasks.feedFern = { description: "餵飼蕨類植物", reward: 15, requiredType: "蕨類植物", completedToday: false, claimedToday: false, lastFeedDate: null };
                     }
-                    if (!gameState.tasks.feedHerbaceous) {
-                        gameState.tasks.feedHerbaceous = { description: "餵飼草本植物", reward: 15, requiredType: "草本", completedToday: false, claimedToday: false, lastFeedDate: null };
+                    if (!gameState.tasks.feedDicot) {
+                        gameState.tasks.feedDicot = { description: "餵飼雙子葉植物", reward: 15, requiredType: "雙子葉植物", completedToday: false, claimedToday: false, lastFeedDate: null };
                     }
-                    if (!gameState.tasks.feedVine) {
-                        gameState.tasks.feedVine = { description: "餵飼蔓性植物", reward: 15, requiredType: "蔓性", completedToday: false, claimedToday: false, lastFeedDate: null };
+                    if (!gameState.tasks.feedMonocot) {
+                        gameState.tasks.feedMonocot = { description: "餵飼單子葉植物", reward: 15, requiredType: "單子葉植物", completedToday: false, claimedToday: false, lastFeedDate: null };
+                    }
+                    if (!gameState.tasks.feedGymnosperm) {
+                        gameState.tasks.feedGymnosperm = { description: "餵飼裸子植物", reward: 15, requiredType: "裸子植物", completedToday: false, claimedToday: false, lastFeedDate: null };
                     }
                     
                     checkEvolution();
@@ -367,9 +376,70 @@
         }
         for (const plant of Object.values(gameState.pokedex)) {
             const card = document.createElement('div');
-            card.className = 'pokedex-card bg-white rounded-lg shadow p-2 text-center';
+            card.className = 'pokedex-card bg-white rounded-lg shadow p-2 text-center cursor-pointer hover:shadow-lg transition-shadow';
             card.innerHTML = `<img src="${plant.image}" alt="${plant.name}" class="w-full h-20 object-cover rounded-md mb-2"><p class="text-sm font-bold truncate">${plant.name}</p><p class="text-xs text-gray-500">${plant.type}</p>`;
+            card.addEventListener('click', () => showPlantDetail(plant));
             grid.appendChild(card);
+        }
+    }
+    
+    async function showPlantDetail(plant) {
+        const loadingContent = `<div class="text-6xl mb-4">🌿</div><h3 class="text-2xl font-bold mb-2">${plant.name}</h3><p class="text-sm text-gray-500 italic mb-4">${plant.scientificName || ''}</p><div class="animate-spin rounded-full h-12 w-12 border-b-4 border-emerald-500 mx-auto mb-4"></div><p class="text-gray-600">AI 正在生成詳細資訊...</p>`;
+        showModal(loadingContent);
+        
+        const prompt = `請為以下植物生成詳細介紹，嚴格按照JSON格式回傳：
+        植物名稱：${plant.name}
+        ${plant.scientificName ? `學名：${plant.scientificName}` : ''}
+        植物類型：${plant.type}
+        
+        請提供以下資訊：
+        { "flowerLanguage": "該植物的花語（如果有的話，沒有則回傳空字串）", "bloomingSeason": "該植物的花期或生長季節", "description": "簡短描述該植物的特徵、生長環境、用途等（約50-80字）" }`;
+        
+        const API_KEY = "AIzaSyBEQ5gklJF1MQ0pfb_b9gGdxO8Ywm95BsM";
+        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${API_KEY}`;
+        const payload = { 
+            contents: [{ role: "user", parts: [{ text: prompt }] }], 
+            generationConfig: { responseMimeType: "application/json" } 
+        };
+        
+        try {
+            const response = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            if (!response.ok) throw new Error(`API 請求失敗: ${response.status}`);
+            const result = await response.json();
+            const detailData = JSON.parse(result.candidates[0].content.parts[0].text);
+            
+            const flowerLanguageHtml = detailData.flowerLanguage ? `<div class="mb-3"><p class="text-sm font-semibold text-emerald-700">花語</p><p class="text-sm text-gray-700">${detailData.flowerLanguage}</p></div>` : '';
+            const scientificNameHtml = plant.scientificName ? `<p class="text-sm text-gray-500 italic mb-4">${plant.scientificName}</p>` : '';
+            
+            const content = `
+                <div class="text-left max-h-[70vh] overflow-y-auto">
+                    <img src="${plant.image}" alt="${plant.name}" class="w-full max-h-48 object-cover rounded-lg mb-4">
+                    <h3 class="text-2xl font-bold mb-2 text-center">${plant.name}</h3>
+                    ${scientificNameHtml}
+                    <div class="mb-3">
+                        <p class="text-sm font-semibold text-emerald-700">植物種類</p>
+                        <p class="text-sm text-gray-700">${plant.type}</p>
+                    </div>
+                    ${flowerLanguageHtml}
+                    <div class="mb-3">
+                        <p class="text-sm font-semibold text-emerald-700">花期 / 生長季節</p>
+                        <p class="text-sm text-gray-700">${detailData.bloomingSeason}</p>
+                    </div>
+                    <div class="mb-4">
+                        <p class="text-sm font-semibold text-emerald-700">簡介</p>
+                        <p class="text-sm text-gray-700">${detailData.description}</p>
+                    </div>
+                    <div class="bg-emerald-50 p-3 rounded-lg mb-4">
+                        <p class="text-xs font-semibold text-emerald-700 mb-1">小知識</p>
+                        <p class="text-xs text-gray-600">${plant.fact}</p>
+                    </div>
+                    <button class="modal-close-btn btn bg-emerald-500 text-white font-bold py-2 px-6 rounded-full w-full">關閉</button>
+                </div>
+            `;
+            showModal(content);
+        } catch (error) {
+            console.error("取得植物詳細資訊失敗:", error);
+            showModal(`<div class="text-6xl mb-4">😢</div><h3 class="text-2xl font-bold mb-2">無法載入詳細資訊</h3><p class="text-gray-600 mb-6">請稍後再試。</p><button class="modal-close-btn btn bg-emerald-500 text-white font-bold py-2 px-6 rounded-full">關閉</button>`);
         }
     }
 
@@ -468,13 +538,14 @@
     }
 
     async function identifyPlantAndCreateQuiz(base64ImageData, imageSrc) {
-        const prompt = `你是一位友善的植物學家。請辨識圖片中的植物，並嚴格按照以下JSON格式回傳。請根據植物的生長型態分類：
-        - 灌木：木本植物，但比喬木矮小，通常沒有明顯主幹，例如：玫瑰、杜鵑、茶花
-        - 喬木：高大木本植物，有明顯主幹，例如：櫻花樹、楓樹、榕樹
-        - 草本：非木本植物，莖部柔軟，例如：向日葵、蒲公英、草莓
-        - 蔓性：藤蔓或攀緣植物，需要攀附或匍匐生長，例如：爬山虎、牽牛花、葡萄藤
+        const prompt = `你是一位專業的植物學家。請辨識圖片中的植物，並嚴格按照以下JSON格式回傳。請根據植物的分類學分類：
+        - 非維管植物：無維管束的植物，例如：苔蘚、地衣、藻類
+        - 蕨類植物：有維管束但無種子的植物，例如：蕨類、鐵線蕨、木賊
+        - 雙子葉植物：種子有兩片子葉的被子植物，例如：玫瑰、向日葵、櫻花、楓樹
+        - 單子葉植物：種子有一片子葉的被子植物，例如：稻米、竹子、百合、蘭花
+        - 裸子植物：種子裸露的植物，例如：松樹、杉木、銀杏、蘇鐵
         如果圖片不是植物，請在plantType中回傳"非植物"。
-        { "plantName": "植物的中文名稱", "plantType": "判斷植物屬於'灌木'、'喬木'、'草本'、'蔓性'或'非植物'", "funFact": "一段關於此植物的簡短有趣知識。", "quiz": { "question": "根據知識點設計一個單選題", "options": ["選項A", "選項B", "正確答案C"], "correctAnswerIndex": 2 } }`;
+        { "plantName": "植物的中文名稱", "scientificName": "植物的拉丁學名（斜體格式）", "plantType": "判斷植物屬於'非維管植物'、'蕨類植物'、'雙子葉植物'、'單子葉植物'、'裸子植物'或'非植物'", "funFact": "一段關於此植物的簡短有趣知識。", "quiz": { "question": "根據知識點設計一個單選題", "options": ["選項A", "選項B", "正確答案C"], "correctAnswerIndex": 2 } }`;
         const API_KEY = "AIzaSyBEQ5gklJF1MQ0pfb_b9gGdxO8Ywm95BsM";
         const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${API_KEY}`;
         const payload = { contents: [{ role: "user", parts: [ { text: prompt }, { inlineData: { mimeType: "image/png", data: base64ImageData } } ] }], generationConfig: { responseMimeType: "application/json" } };
@@ -497,7 +568,7 @@
             const data = JSON.parse(result.candidates[0].content.parts[0].text);
             console.log('Parsed plant data:', data);
             
-            const validTypes = ['灌木', '喬木', '草本', '蔓性'];
+            const validTypes = ['非維管植物', '蕨類植物', '雙子葉植物', '單子葉植物', '裸子植物'];
             if (!validTypes.includes(data.plantType)) {
                 showModal(`<div class="text-6xl mb-4">🤔</div><h3 class="text-2xl font-bold mb-2">這不是植物喔</h3><p class="text-gray-600 mb-6">AI 認為這張圖片不是植物，請換一張照片再試一次吧！</p><button class="modal-close-btn btn bg-emerald-500 text-white font-bold py-2 px-6 rounded-full">好的</button>`, () => {
                     navigateTo('home');
@@ -507,24 +578,33 @@
             }
 
             if (data.plantName && !gameState.pokedex[data.plantName]) {
-                gameState.pokedex[data.plantName] = { name: data.plantName, type: data.plantType, image: imageSrc, fact: data.funFact };
+                gameState.pokedex[data.plantName] = { 
+                    name: data.plantName, 
+                    scientificName: data.scientificName || '',
+                    type: data.plantType, 
+                    image: imageSrc, 
+                    fact: data.funFact 
+                };
             }
             
             const today = getTodayString();
             const type = data.plantType;
             
-            if (type === '灌木' && !gameState.tasks.feedShrub.completedToday) {
-                gameState.tasks.feedShrub.completedToday = true;
-                gameState.tasks.feedShrub.lastFeedDate = today;
-            } else if (type === '喬木' && !gameState.tasks.feedTree.completedToday) {
-                gameState.tasks.feedTree.completedToday = true;
-                gameState.tasks.feedTree.lastFeedDate = today;
-            } else if (type === '草本' && !gameState.tasks.feedHerbaceous.completedToday) {
-                gameState.tasks.feedHerbaceous.completedToday = true;
-                gameState.tasks.feedHerbaceous.lastFeedDate = today;
-            } else if (type === '蔓性' && !gameState.tasks.feedVine.completedToday) {
-                gameState.tasks.feedVine.completedToday = true;
-                gameState.tasks.feedVine.lastFeedDate = today;
+            if (type === '非維管植物' && gameState.tasks.feedNonVascular && !gameState.tasks.feedNonVascular.completedToday) {
+                gameState.tasks.feedNonVascular.completedToday = true;
+                gameState.tasks.feedNonVascular.lastFeedDate = today;
+            } else if (type === '蕨類植物' && gameState.tasks.feedFern && !gameState.tasks.feedFern.completedToday) {
+                gameState.tasks.feedFern.completedToday = true;
+                gameState.tasks.feedFern.lastFeedDate = today;
+            } else if (type === '雙子葉植物' && gameState.tasks.feedDicot && !gameState.tasks.feedDicot.completedToday) {
+                gameState.tasks.feedDicot.completedToday = true;
+                gameState.tasks.feedDicot.lastFeedDate = today;
+            } else if (type === '單子葉植物' && gameState.tasks.feedMonocot && !gameState.tasks.feedMonocot.completedToday) {
+                gameState.tasks.feedMonocot.completedToday = true;
+                gameState.tasks.feedMonocot.lastFeedDate = today;
+            } else if (type === '裸子植物' && gameState.tasks.feedGymnosperm && !gameState.tasks.feedGymnosperm.completedToday) {
+                gameState.tasks.feedGymnosperm.completedToday = true;
+                gameState.tasks.feedGymnosperm.lastFeedDate = today;
             }
             
             gameState.currentQuiz = data.quiz;
@@ -540,14 +620,16 @@
 
     function displayResultAndQuiz(data, imageSrc) { 
         const screen = screens.result;
-        screen.innerHTML = `<h2 class="text-xl sm:text-2xl font-bold text-center text-emerald-700 mb-4">分析結果與挑戰</h2><div class="bg-white p-4 rounded-lg mb-4 text-center shadow-sm"><img src="${imageSrc}" alt="上傳的植物圖片" class="max-h-40 w-auto mx-auto rounded-lg shadow-md mb-3"><div class="flex justify-center items-center gap-2"><p class="text-lg font-bold text-emerald-600">${data.plantName || "生態知識"}</p><span id="plant-type-badge" class="text-xs font-semibold px-2 py-0.5 rounded-full"></span></div><p class="text-sm mt-2 text-gray-700 bg-emerald-50 p-2 rounded-md">${data.funFact || "準備好接受挑戰了嗎？"}</p></div><div class="bg-amber-50 p-4 rounded-lg shadow-sm"><p class="font-semibold text-amber-800 mb-3 text-center">💡 生態小測驗</p><p class="mb-4 text-center">${data.quiz.question}</p><div id="quiz-options" class="grid grid-cols-1 gap-3"></div></div>`;
+        const scientificNameHtml = data.scientificName ? `<p class="text-sm text-gray-500 italic mt-1">${data.scientificName}</p>` : '';
+        screen.innerHTML = `<h2 class="text-xl sm:text-2xl font-bold text-center text-emerald-700 mb-4">分析結果與挑戰</h2><div class="bg-white p-4 rounded-lg mb-4 text-center shadow-sm"><img src="${imageSrc}" alt="上傳的植物圖片" class="max-h-40 w-auto mx-auto rounded-lg shadow-md mb-3"><div class="flex justify-center items-center gap-2"><p class="text-lg font-bold text-emerald-600">${data.plantName || "生態知識"}</p><span id="plant-type-badge" class="text-xs font-semibold px-2 py-0.5 rounded-full"></span></div>${scientificNameHtml}<p class="text-sm mt-2 text-gray-700 bg-emerald-50 p-2 rounded-md">${data.funFact || "準備好接受挑戰了嗎？"}</p></div><div class="bg-amber-50 p-4 rounded-lg shadow-sm"><p class="font-semibold text-amber-800 mb-3 text-center">💡 生態小測驗</p><p class="mb-4 text-center">${data.quiz.question}</p><div id="quiz-options" class="grid grid-cols-1 gap-3"></div></div>`;
         const type = data.plantType || '';
         const badge = screen.querySelector('#plant-type-badge');
         badge.textContent = type;
-        if (type === '灌木') badge.className = 'text-xs font-semibold px-2 py-0.5 rounded-full bg-pink-200 text-pink-800';
-        else if (type === '喬木') badge.className = 'text-xs font-semibold px-2 py-0.5 rounded-full bg-yellow-200 text-yellow-800';
-        else if (type === '草本') badge.className = 'text-xs font-semibold px-2 py-0.5 rounded-full bg-green-200 text-green-800';
-        else if (type === '蔓性') badge.className = 'text-xs font-semibold px-2 py-0.5 rounded-full bg-purple-200 text-purple-800';
+        if (type === '非維管植物') badge.className = 'text-xs font-semibold px-2 py-0.5 rounded-full bg-teal-200 text-teal-800';
+        else if (type === '蕨類植物') badge.className = 'text-xs font-semibold px-2 py-0.5 rounded-full bg-green-200 text-green-800';
+        else if (type === '雙子葉植物') badge.className = 'text-xs font-semibold px-2 py-0.5 rounded-full bg-pink-200 text-pink-800';
+        else if (type === '單子葉植物') badge.className = 'text-xs font-semibold px-2 py-0.5 rounded-full bg-yellow-200 text-yellow-800';
+        else if (type === '裸子植物') badge.className = 'text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-200 text-blue-800';
         else badge.className = 'text-xs font-semibold px-2 py-0.5 rounded-full bg-gray-200 text-gray-800';
         const optionsContainer = screen.querySelector('#quiz-options');
         data.quiz.options.forEach((option, index) => {
