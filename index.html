@@ -411,6 +411,7 @@
             const flowerLanguageHtml = detailData.flowerLanguage ? `<div class="mb-3"><p class="text-sm font-semibold text-emerald-700">花語</p><p class="text-sm text-gray-700">${detailData.flowerLanguage}</p></div>` : '';
             const scientificNameHtml = plant.scientificName ? `<p class="text-sm text-gray-500 italic mb-4">${plant.scientificName}</p>` : '';
             
+            const herbariumUrl = 'https://www.herbarium.gov.hk/tc/hk-plant-database/index.html';
             const content = `
                 <div class="text-left max-h-[70vh] overflow-y-auto">
                     <img src="${plant.image}" alt="${plant.name}" class="w-full max-h-48 object-cover rounded-lg mb-4">
@@ -432,6 +433,11 @@
                     <div class="bg-emerald-50 p-3 rounded-lg mb-4">
                         <p class="text-xs font-semibold text-emerald-700 mb-1">小知識</p>
                         <p class="text-xs text-gray-600">${plant.fact}</p>
+                    </div>
+                    <div class="bg-blue-50 border border-blue-200 p-3 rounded-lg mb-4">
+                        <p class="text-xs font-semibold text-blue-700 mb-2">🏛️ 官方植物資料庫</p>
+                        <p class="text-xs text-gray-600 mb-2">想了解更多權威資訊？可前往香港植物標本室查詢此植物的官方記錄。</p>
+                        <a href="${herbariumUrl}" target="_blank" rel="noopener noreferrer" class="text-xs text-blue-600 hover:text-blue-800 underline">🔗 前往香港植物標本室</a>
                     </div>
                     <button class="modal-close-btn btn bg-emerald-500 text-white font-bold py-2 px-6 rounded-full w-full">關閉</button>
                 </div>
@@ -538,14 +544,20 @@
     }
 
     async function identifyPlantAndCreateQuiz(base64ImageData, imageSrc) {
-        const prompt = `你是一位專業的植物學家。請辨識圖片中的植物，並嚴格按照以下JSON格式回傳。請根據植物的分類學分類：
+        const prompt = `你是一位專業的植物學家，請參考香港植物標本室（Hong Kong Herbarium）的分類標準來辨識圖片中的植物。請嚴格按照以下JSON格式回傳。
+
+請根據植物的科學分類學分類：
         - 非維管植物：無維管束的植物，例如：苔蘚、地衣、藻類
         - 蕨類植物：有維管束但無種子的植物，例如：蕨類、鐵線蕨、木賊
-        - 雙子葉植物：種子有兩片子葉的被子植物，例如：玫瑰、向日葵、櫻花、楓樹
+        - 雙子葉植物：種子有兩片子葉的被子植物，例如：玫瑰、向日葵、櫻花、楓樹、洋紫荊
         - 單子葉植物：種子有一片子葉的被子植物，例如：稻米、竹子、百合、蘭花
         - 裸子植物：種子裸露的植物，例如：松樹、杉木、銀杏、蘇鐵
-        如果圖片不是植物，請在plantType中回傳"非植物"。
-        { "plantName": "植物的中文名稱", "scientificName": "植物的拉丁學名（斜體格式）", "plantType": "判斷植物屬於'非維管植物'、'蕨類植物'、'雙子葉植物'、'單子葉植物'、'裸子植物'或'非植物'", "funFact": "一段關於此植物的簡短有趣知識。", "quiz": { "question": "根據知識點設計一個單選題", "options": ["選項A", "選項B", "正確答案C"], "correctAnswerIndex": 2 } }`;
+        
+如果圖片不是植物，請在plantType中回傳"非植物"。
+
+請確保學名（scientificName）準確無誤，並優先使用香港及華南地區的常見植物名稱。
+
+{ "plantName": "植物的中文名稱", "scientificName": "植物的拉丁學名（例如：Bauhinia × blakeana）", "plantType": "判斷植物屬於'非維管植物'、'蕨類植物'、'雙子葉植物'、'單子葉植物'、'裸子植物'或'非植物'", "funFact": "一段關於此植物的簡短有趣知識", "quiz": { "question": "根據知識點設計一個單選題", "options": ["選項A", "選項B", "正確答案C"], "correctAnswerIndex": 2 } }`;
         const API_KEY = "AIzaSyBEQ5gklJF1MQ0pfb_b9gGdxO8Ywm95BsM";
         const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${API_KEY}`;
         const payload = { contents: [{ role: "user", parts: [ { text: prompt }, { inlineData: { mimeType: "image/png", data: base64ImageData } } ] }], generationConfig: { responseMimeType: "application/json" } };
