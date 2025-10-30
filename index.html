@@ -165,7 +165,7 @@
         mainNav, cameraFeed, captureBtn, cancelCameraBtn, 
         canvas;
 
-    const calculateXpToNextLevel = (level) => 8 + (2 * level);
+    const calculateXpToNextLevel = (level) => (2 * level);
     const getTodayString = () => new Date().toISOString().split('T')[0];
     
     function saveGameState() {
