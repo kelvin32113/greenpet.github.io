@@ -8,6 +8,17 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Noto Sans TC', sans-serif; touch-action: manipulation; }
+        /* 新增啟動畫面樣式，參考附件 */
+        .start-hero { background: linear-gradient(180deg,#57d37f 0%, #2fb36b 100%); }
+        .title-large { font-size: 48px; font-weight: 800; color: #ffffff; text-shadow: 0 6px 0 rgba(0,82,45,0.55), 0 2px 8px rgba(0,0,0,0.15); letter-spacing: 2px; }
+        .start-illustration { width: 220px; height: auto; box-shadow: 0 12px 24px rgba(0,0,0,0.12); border-radius: 50%; background: rgba(255,255,255,0.06); padding: 12px; }
+        .rounded-oval-btn { background: #ffffff; color: #064f2b; border-radius: 999px; padding: 14px 36px; box-shadow: 0 8px 18px rgba(3,59,32,0.18); font-weight: 700; }
+        .rounded-oval-btn.secondary { margin-left: 16px; }
+        .big-cta { background: #ffffff; color: #064f2b; border-radius: 28px; padding: 18px 40px; box-shadow: 0 14px 30px rgba(3,59,32,0.18); font-size: 22px; font-weight: 800; }
+        .start-subtext { color: rgba(255,255,255,0.92); max-width: 80%; text-align: center; margin-top: 12px; margin-bottom: 18px; font-size: 14px; }
+        .hero-slider { width: 80%; height: 14px; background: rgba(255,255,255,0.15); border-radius: 12px; position: relative; overflow: hidden; box-shadow: inset 0 -2px 6px rgba(0,0,0,0.08); }
+        .hero-slider .thumb { position: absolute; left: 60%; top: 50%; transform: translate(-50%,-50%); width: 28px; height: 28px; background: #ffffff; border-radius: 50%; box-shadow: 0 6px 12px rgba(0,0,0,0.15); border: 6px solid rgba(255,255,255,0.15); }
+        .start-hero .container { padding: 36px 24px; }
         .app-bg {background-image: url('Background.png'); background-size: cover;background-position: center;background-repeat: no-repeat; position: relative;overflow: hidden;}
         .main-content { z-index: 1; position: relative; }
         .progress-bar-fill { transition: width 0.5s ease-in-out; }
@@ -33,23 +44,27 @@
     <div id="app-container" class="w-full max-w-md mx-auto h-[800px] max-h-[90vh] bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col">
 
         <div id="screen-container" class="flex-grow relative">
-            <div id="start-screen" class="hidden absolute inset-0 bg-emerald-50 p-8 flex flex-col justify-center items-center z-40">
-                <h1 class="text-3xl font-bold text-emerald-700 mb-2">選擇你的夥伴</h1>
-                <p class="text-gray-600 mb-6 text-center">點擊選擇一個夥伴，並為牠取個名字吧！</p>
-                
-                <div class="flex gap-4 mb-6">
-                    <div id="pet-choice-1" class="pet-choice-card rounded-2xl p-2 cursor-pointer bg-white shadow-md" data-visual="Pet1_1.png" data-name="種籽" data-type="seed1">
-                        <img src="Pet1_1.png" class="w-24 h-24 object-contain rounded-xl">
-                        <p class="text-center text-sm mt-1 font-semibold">種籽</p>
+            <div id="start-screen" class="hidden absolute inset-0 start-hero flex flex-col justify-center items-center z-40">
+                <div class="container text-center">
+                    <h1 class="title-large mb-4">綠野尋蹤</h1>
+                    <div class="mb-4">
+                        <img id="start-mascot" src="Pet1_1.png" alt="mascot" class="start-illustration">
                     </div>
-                    <div id="pet-choice-2" class="pet-choice-card rounded-2xl p-2 cursor-pointer bg-white shadow-md" data-visual="Pet2_1.png" data-name="豆芽" data-type="seed2">
-                        <img src="Pet2_1.png" class="w-24 h-24 object-contain rounded-xl">
-                         <p class="text-center text-sm mt-1 font-semibold">豆芽</p>
+                    <p class="start-subtext">和你的植物夥伴一起探索自然、學習植物小知識，完成任務還能獲得獎勵！</p>
+
+                    <div class="mb-6 flex justify-center items-center">
+                        <button id="login-btn" class="rounded-oval-btn">登入</button>
+                        <button id="register-btn" class="rounded-oval-btn secondary">註冊</button>
+                    </div>
+
+                    <div class="mb-6 flex justify-center">
+                        <div class="hero-slider"><div class="thumb"></div></div>
+                    </div>
+
+                    <div class="mb-2">
+                        <button id="start-game-btn" class="big-cta">開始探險</button>
                     </div>
                 </div>
-
-                <input type="text" id="start-pet-name" placeholder="輸入寵物名稱..." class="w-full p-3 border border-gray-300 rounded-lg mb-6 text-center focus:ring-2 focus:ring-emerald-500 focus:border-transparent">
-                <button id="start-game-btn" class="btn w-full bg-emerald-500 text-white font-bold py-3 rounded-lg shadow-lg">開始遊戲</button>
             </div>
 
             <div id="home-screen" class="hidden w-full h-full flex flex-col app-bg">
@@ -395,17 +410,17 @@
         請提供以下資訊：
         { "flowerLanguage": "該植物的花語（如果有的話，沒有則回傳空字串）", "bloomingSeason": "該植物的花期或生長季節", "description": "簡短描述該植物的特徵、生長環境、用途等（約50-80字）" }`;
         
-        const API_KEY = "AIzaSyCg-v9lqnzUYV0UXaAVBIz8eOWZH5QKcQo";
-        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${API_KEY}`;
+        // 將 API 請求改為呼叫本機 proxy，API key 不應該放在前端
+        const proxyPath = 'v1beta/models/gemini-2.5-flash-preview-05-20:generateContent';
         const payload = { 
             contents: [{ role: "user", parts: [{ text: prompt }] }], 
             generationConfig: { responseMimeType: "application/json" } 
         };
-        
+
         try {
-            const response = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-            if (!response.ok) throw new Error(`API 請求失敗: ${response.status}`);
-            const result = await response.json();
+            const proxyResp = await fetch('/api/gemini', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ path: proxyPath, payload }) });
+            if (!proxyResp.ok) throw new Error(`Proxy 請求失敗: ${proxyResp.status}`);
+            const result = await proxyResp.json();
             const detailData = JSON.parse(result.candidates[0].content.parts[0].text);
             
             const flowerLanguageHtml = detailData.flowerLanguage ? `<div class="mb-3"><p class="text-sm font-semibold text-emerald-700">花語</p><p class="text-sm text-gray-700">${detailData.flowerLanguage}</p></div>` : '';
@@ -558,18 +573,18 @@
 請確保學名（scientificName）準確無誤，並優先使用香港及華南地區的常見植物名稱。
 
 { "plantName": "植物的中文名稱", "scientificName": "植物的拉丁學名（例如：Bauhinia × blakeana）", "plantType": "判斷植物屬於'非維管植物'、'蕨類植物'、'雙子葉植物'、'單子葉植物'、'裸子植物'或'非植物'", "funFact": "一段關於此植物的簡短有趣知識", "quiz": { "question": "根據知識點設計一個單選題", "options": ["選項A", "選項B", "正確答案C"], "correctAnswerIndex": 2 } }`;
-        const API_KEY = "AIzaSyBEQ5gklJF1MQ0pfb_b9gGdxO8Ywm95BsM";
-        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${API_KEY}`;
+        // 改為呼叫後端 proxy，避免在前端暴露 API key
+        const proxyPath = 'v1beta/models/gemini-2.5-flash-preview-05-20:generateContent';
         const payload = { contents: [{ role: "user", parts: [ { text: prompt }, { inlineData: { mimeType: "image/png", data: base64ImageData } } ] }], generationConfig: { responseMimeType: "application/json" } };
 
         try {
-            const response = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error(`API 請求失敗: ${response.status}`, errorText);
-                throw new Error(`API 請求失敗: ${response.status}`);
+            const proxyResp = await fetch('/api/gemini', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ path: proxyPath, payload }) });
+            if (!proxyResp.ok) {
+                const errorText = await proxyResp.text();
+                console.error(`Proxy 請求失敗: ${proxyResp.status}`, errorText);
+                throw new Error(`Proxy 請求失敗: ${proxyResp.status}`);
             }
-            const result = await response.json();
+            const result = await proxyResp.json();
             console.log('API Response:', result);
             
             if (!result.candidates || !result.candidates[0] || !result.candidates[0].content || !result.candidates[0].content.parts || !result.candidates[0].content.parts[0]) {
@@ -825,42 +840,54 @@
             navigateTo('home');
         } else {
             screens.start.classList.remove('hidden');
+            // 新版啟動畫面可能沒有寵物選擇與輸入欄位，安全處理：若沒有這些元素，使用預設值
             const petChoice1 = document.getElementById('pet-choice-1');
             const petChoice2 = document.getElementById('pet-choice-2');
             const startPetName = document.getElementById('start-pet-name');
             const startGameBtn = document.getElementById('start-game-btn');
-            
-            let selectedPetURL = petChoice1.dataset.visual;
-            let selectedPetName = petChoice1.dataset.name;
-            let selectedPetType = petChoice1.dataset.type;
-            petChoice1.classList.add('selected');
-            startPetName.value = selectedPetName;
 
-            petChoice1.addEventListener('click', () => {
+            // 預設值來源於 initialGameState
+            let selectedPetURL = initialGameState.pet.visual || 'Pet1_1.png';
+            let selectedPetName = initialGameState.pet.name || '小種籽';
+            let selectedPetType = initialGameState.pet.type || 'seed1';
+
+            if (petChoice1 && petChoice2 && startPetName) {
                 selectedPetURL = petChoice1.dataset.visual;
                 selectedPetName = petChoice1.dataset.name;
                 selectedPetType = petChoice1.dataset.type;
                 petChoice1.classList.add('selected');
-                petChoice2.classList.remove('selected');
                 startPetName.value = selectedPetName;
-            });
-            petChoice2.addEventListener('click', () => {
-                selectedPetURL = petChoice2.dataset.visual;
-                selectedPetName = petChoice2.dataset.name;
-                selectedPetType = petChoice2.dataset.type;
-                petChoice2.classList.add('selected');
-                petChoice1.classList.remove('selected');
-                startPetName.value = selectedPetName;
-            });
-            
-            startGameBtn.addEventListener('click', () => {
-                const petNameValue = startPetName.value.trim();
-                if (!petNameValue) {
-                    showModal(`<div class="text-6xl mb-4">⚠️</div><h3 class="text-2xl font-bold mb-2">提示</h3><p class="text-gray-600 mb-6">請為您的寵物取一個名字！</p><button class="modal-close-btn btn bg-emerald-500 text-white font-bold py-2 px-6 rounded-full">好的</button>`);
-                    return;
-                }
-                initializeGame(petNameValue, selectedPetURL, selectedPetType);
-            });
+
+                petChoice1.addEventListener('click', () => {
+                    selectedPetURL = petChoice1.dataset.visual;
+                    selectedPetName = petChoice1.dataset.name;
+                    selectedPetType = petChoice1.dataset.type;
+                    petChoice1.classList.add('selected');
+                    petChoice2.classList.remove('selected');
+                    startPetName.value = selectedPetName;
+                });
+                petChoice2.addEventListener('click', () => {
+                    selectedPetURL = petChoice2.dataset.visual;
+                    selectedPetName = petChoice2.dataset.name;
+                    selectedPetType = petChoice2.dataset.type;
+                    petChoice2.classList.add('selected');
+                    petChoice1.classList.remove('selected');
+                    startPetName.value = selectedPetName;
+                });
+            }
+
+            if (startGameBtn) {
+                startGameBtn.addEventListener('click', () => {
+                    // 如果有輸入欄位，優先使用使用者輸入
+                    let petNameValue = selectedPetName;
+                    if (startPetName) {
+                        const val = startPetName.value.trim();
+                        if (val) petNameValue = val;
+                    }
+                    // 直接初始化遊戲（若未提供選項，使用預設）
+                    initializeGame(petNameValue, selectedPetURL, selectedPetType);
+                });
+            }
         }
     });
 </script>
